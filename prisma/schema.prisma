@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Author {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  bio   String?
+  books Book[]  @relation("AuthorBooksRelation") // Relation to the Book model with a specific relation name
+}
+
+model Book {
+  id          Int        @id @default(autoincrement())
+  title       String
+  published   Boolean    @default(true)
+  author      Author?    @relation("AuthorBooksRelation", fields: [authorId], references: [id]) // Relation to the Author model
+  authorId    Int? // Foreign key for the author
+  publisherId Int? // Foreign key for the publisher
+  genres      Genre[]    @relation("BookGenresRelation") // Many-to-many relation with Genre model
+  reviews     Review[]   @relation("BookReviewsRelation") // One-to-many relation with Review model
+  publisher   Publisher? @relation("PublisherBooksRelation", fields: [publisherId], references: [id]) // Relation to the Publisher model
+
+  @@map("books") // Maps the model to the "books" table in the database
+}
+
+model Publisher {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  books Book[] @relation("PublisherBooksRelation") // One-to-many relation with Book model
+
+  @@map("publishers") // Maps the model to the "publishers" table in the database
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  books Book[] @relation("BookGenresRelation") // Many-to-many relation with Book model
+
+  @@map("genres") // Maps the model to the "genres" table in the database
+}
+
+model Review {
+  id      Int     @id @default(autoincrement())
+  rating  Int     @default(0)
+  comment String?
+  book    Book    @relation("BookReviewsRelation", fields: [bookId], references: [id]) // Relation to the Book model
+  bookId  Int // Foreign key for the book
+
+  @@map("reviews") // Maps the model to the "reviews" table in the database
+}
